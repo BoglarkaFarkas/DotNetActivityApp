@@ -7,6 +7,7 @@ namespace myappdotnet.Model
 
         public DbSet<MyUser> MyUser { get; set; }
         public DbSet<Location> Location { get; set; }
+        public DbSet<Activities> Activities { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
@@ -21,6 +22,10 @@ namespace myappdotnet.Model
                 .ValueGeneratedOnAdd();
             
             modelBuilder.Entity<Location>()
+                .Property(u => u.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Activities>()
                 .Property(u => u.Id)
                 .ValueGeneratedOnAdd();
         }

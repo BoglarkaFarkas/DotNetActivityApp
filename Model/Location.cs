@@ -14,6 +14,8 @@ public class Location
     public string NameCity { get; set; }
 
     public string ExactLocation { get; set; }
+
+    public ICollection<Activities> Activities { get; set; }
 }
 
 public class LocationConfiguration : IEntityTypeConfiguration<Location>

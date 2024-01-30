@@ -114,4 +114,39 @@ public class LocationsController : ControllerBase
             return StatusCode(500, new { error = "Internal Server Error" });
         }
     }
+
+    [HttpGet]
+    [Route("locationswithactivities")]
+    public IActionResult GetLocationWithActivities()
+    {
+        try
+        {
+            var locations = context.Location.ToList();
+            var locationDTOs = locations.Select(location =>
+            {
+                var activities = context.Activities
+                    .Where(activity => activity.LocationId == location.Id)
+                    .Select(activity => new ActivityDTO
+                    {
+                        Name = activity.Name,
+                        Price = activity.Price,
+                        Time = activity.Time
+                    }).ToList();
+
+                return new LocationWithActivitiesDTO
+                {
+                    NameCity = location.NameCity,
+                    ExactLocation = location.ExactLocation,
+                    Activities = activities
+                };
+            }).ToList();
+
+            return Ok(locationDTOs);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return StatusCode(500, new { error = "Internal Server Error" });
+        }
+    }
 }

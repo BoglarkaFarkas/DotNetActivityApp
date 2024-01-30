@@ -10,6 +10,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 builder.Services.AddScoped<UsersController>(); 
 builder.Services.AddScoped<LocationsController>(); 
+builder.Services.AddScoped<ActivityController>(); 
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(o => o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
