@@ -19,6 +19,7 @@ public class LocationsController : ControllerBase
     }
     [HttpGet]
     [Route("alllocation")]
+    [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetAllLocations()
     {
         try
@@ -41,6 +42,7 @@ public class LocationsController : ControllerBase
 
     [HttpGet]
     [Route("allcities")]
+    [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetAllCities()
     {
         try
@@ -62,6 +64,7 @@ public class LocationsController : ControllerBase
 
     [HttpGet]
     [Route("LocationId/{id}")]
+    [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetLocationById(int id)
     {
 
@@ -90,6 +93,7 @@ public class LocationsController : ControllerBase
 
     [HttpGet]
     [Route("LocationCity/{name}")]
+    [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetLocationByCity(string name)
     {
         try
@@ -117,6 +121,7 @@ public class LocationsController : ControllerBase
 
     [HttpGet]
     [Route("locationswithactivities")]
+    [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetLocationWithActivities()
     {
         try

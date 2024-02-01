@@ -21,6 +21,7 @@ public class ActivityController : ControllerBase
 
     [HttpGet]
     [Route("allactivities")]
+    [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetAllActivities()
     {
         try
@@ -62,6 +63,7 @@ public class ActivityController : ControllerBase
 
     [HttpGet]
     [Route("activitiesname")]
+    [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetActivitiesName()
     {
         try
@@ -83,6 +85,7 @@ public class ActivityController : ControllerBase
 
     [HttpGet]
     [Route("ActivityId/{id}")]
+    [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetActivityById(int id)
     {
 
@@ -123,6 +126,7 @@ public class ActivityController : ControllerBase
 
     [HttpGet]
     [Route("ActivityName/{name}")]
+    [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetActivityByName(string name)
     {
 
@@ -152,6 +156,75 @@ public class ActivityController : ControllerBase
             };
 
             return Ok(activityDTO);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return StatusCode(500, new { error = "Internal Server Error" });
+        }
+    }
+
+    [HttpGet]
+    [Route("allprices")]
+    [Authorize(AuthenticationSchemes = "BasicAuthentication")]
+    public IActionResult GetAllPrices()
+    {
+        try
+        {
+            var activity = context.Activities.Select(ac => ac.Price).Distinct().ToList();
+            var activityDTO = activity.Select(price => new ActivityPriceDTO
+            {
+                Price = price
+            }).ToList();
+
+            return Ok(activityDTO);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return StatusCode(500, new { error = "Internal Server Error" });
+        }
+    }
+
+    [HttpGet]
+    [Route("activityprice/{price}")]
+    [Authorize(AuthenticationSchemes = "BasicAuthentication")]
+    public IActionResult GetActivityByPrice(double price)
+    {
+        try
+        {
+            var activity = context.Activities.Where(a => a.Price == price).ToList();
+            if (activity.Count == 0)
+            {
+                return NotFound();
+            }
+
+            var activitiesDTO = activity.Select(activity =>
+            {
+                var location = context.Location.FirstOrDefault(l => l.Id == activity.LocationId);
+                if (location != null)
+                {
+                    var locationDTO = new AboutLocationDTO
+                    {
+                        NameCity = location.NameCity,
+                        ExactLocation = location.ExactLocation
+                    };
+
+                    return new AboutActivityDTO
+                    {
+                        Name = activity.Name,
+                        Price = activity.Price,
+                        Time = activity.Time,
+                        Location = locationDTO
+                    };
+                }
+                else
+                {
+                    return null;
+                }
+            }).Where(dto => dto != null).ToList();
+
+            return Ok(activitiesDTO);
         }
         catch (Exception ex)
         {
