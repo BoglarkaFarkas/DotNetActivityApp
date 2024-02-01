@@ -11,6 +11,7 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<UsersController>(); 
 builder.Services.AddScoped<LocationsController>(); 
 builder.Services.AddScoped<ActivityController>(); 
+builder.Services.AddScoped<UserAndActivitiesController>(); 
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(o => o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
