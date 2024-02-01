@@ -78,7 +78,7 @@ public class UserAndActivitiesController : ControllerBase
                     return NotFound();
                 }
                 var act = context.MyUser_Activities.Where(ac => ac.UserId == user.Id).ToList();
-                var activityDTOs = new List<AboutActivityDTO>();
+                var activityDTOs = new List<ActivitiesForUserDTO>();
                 foreach (var action in act)
                 {
                     var activities = context.Activities.FirstOrDefault(a => a.Id == action.ActivityId);
@@ -100,7 +100,12 @@ public class UserAndActivitiesController : ControllerBase
                                 Time = activities.Time,
                                 Location = locationDTO
                             };
-                            activityDTOs.Add(activityDTO);
+                            var activitiesDTO = new ActivitiesForUserDTO
+                            {
+                                CreatedAt = action.CreatedAt,
+                                Activity = activityDTO
+                            };
+                            activityDTOs.Add(activitiesDTO);
                         }
 
                     }
