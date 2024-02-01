@@ -21,9 +21,10 @@ CREATE TABLE IF NOT EXISTS "MyUser" (
 );
 
 CREATE TABLE IF NOT EXISTS "MyUser_Activities" (
+    "Id" serial PRIMARY KEY,
     "UserId" INT,
     "ActivityId" INT,
+    "CreatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY ("UserId") REFERENCES "MyUser"("Id"),
-    FOREIGN KEY ("ActivityId") REFERENCES "Activities"("Id"),
-    PRIMARY KEY ("UserId", "ActivityId")
+    FOREIGN KEY ("ActivityId") REFERENCES "Activities"("Id")
 );

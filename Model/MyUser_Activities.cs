@@ -8,10 +8,12 @@ namespace myappdotnet.Model;
 public class MyUser_Activities
 {
     [Key]
+    public int Id { get; set; }
     public int UserId { get; set; }
-    
-    [Key]
+
     public int ActivityId { get; set; }
+
+    public DateTime CreatedAt { get; set; }
 
     [ForeignKey("UserId")]
     public MyUser User { get; set; }
@@ -25,7 +27,12 @@ public class MyUser_ActivitiesConfiguration : IEntityTypeConfiguration<MyUser_Ac
 {
     public void Configure(EntityTypeBuilder<MyUser_Activities> builder)
     {
-        builder.HasKey(u => new { u.UserId, u.ActivityId });
+        builder.HasKey(u => u.Id);
+
+        builder.Property(u => u.CreatedAt)
+            .HasDefaultValueSql("now()")
+            .IsRequired();
+
 
         builder.HasOne(u => u.User)
             .WithMany()

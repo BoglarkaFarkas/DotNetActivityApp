@@ -61,4 +61,63 @@ public class UserAndActivitiesController : ControllerBase
             return StatusCode(500, new { error = "Internal Server Error" });
         }
     }
+
+    [HttpGet]
+    [Route("activityForUser")]
+    [Authorize(AuthenticationSchemes = "BasicAuthentication")]
+    public IActionResult GetActivitiesForUser()
+    {
+        try
+        {
+            if (HttpContext.User.Identity.IsAuthenticated)
+            {
+                var username = HttpContext.User.Identity.Name;
+                var user = context.MyUser.FirstOrDefault(u => u.Email == username);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+                var act = context.MyUser_Activities.Where(ac => ac.UserId == user.Id).ToList();
+                var activityDTOs = new List<AboutActivityDTO>();
+                foreach (var action in act)
+                {
+                    var activities = context.Activities.FirstOrDefault(a => a.Id == action.ActivityId);
+                    if (activities != null)
+                    {
+                        var location = context.Location.FirstOrDefault(l => l.Id == activities.LocationId);
+                        if (location != null)
+                        {
+                            var locationDTO = new AboutLocationDTO
+                            {
+                                NameCity = location.NameCity,
+                                ExactLocation = location.ExactLocation
+                            };
+
+                            var activityDTO = new AboutActivityDTO
+                            {
+                                Name = activities.Name,
+                                Price = activities.Price,
+                                Time = activities.Time,
+                                Location = locationDTO
+                            };
+                            activityDTOs.Add(activityDTO);
+                        }
+
+                    }
+
+                }
+                return Ok(activityDTOs);
+
+            }
+            else
+            {
+                return Unauthorized();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return StatusCode(500, new { error = "Internal Server Error" });
+        }
+    }
 }
