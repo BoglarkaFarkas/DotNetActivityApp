@@ -33,7 +33,7 @@ public class UserAndActivitiesController : ControllerBase
                 var activity = context.Activities.FirstOrDefault(ac => ac.Name == activityNameDTO.Name);
                 if (activity == null || user == null)
                 {
-                    return NotFound();
+                    return NotFound(new { status = 404, message = "Activity do not exist" });
                 }
 
                 var actforuser = new MyUser_Activities();
@@ -41,18 +41,12 @@ public class UserAndActivitiesController : ControllerBase
                 actforuser.UserId = user.Id;
                 context.MyUser_Activities.Add(actforuser);
                 context.SaveChanges();
-                var response = new
-                {
-                    status = 200,
-                    message = $"Activity added for user {user.First_name} {user.Surname}"
-                };
-
-                return Ok(response);
+                return Ok(new { message = "Activity added for user." });
 
             }
             else
             {
-                return Unauthorized();
+                return Unauthorized(new { status = 401, message = "Unauthorized access." });
             }
         }
         catch (Exception ex)
@@ -75,7 +69,7 @@ public class UserAndActivitiesController : ControllerBase
                 var user = context.MyUser.FirstOrDefault(u => u.Email == username);
                 if (user == null)
                 {
-                    return NotFound();
+                    return NotFound(new { status = 404, message = "User do not exist" });
                 }
                 var act = context.MyUser_Activities.Where(ac => ac.UserId == user.Id).ToList();
                 var activityDTOs = new List<ActivitiesForUserDTO>();
@@ -116,7 +110,7 @@ public class UserAndActivitiesController : ControllerBase
             }
             else
             {
-                return Unauthorized();
+                return Unauthorized(new { status = 401, message = "Unauthorized access." });
             }
         }
         catch (Exception ex)
