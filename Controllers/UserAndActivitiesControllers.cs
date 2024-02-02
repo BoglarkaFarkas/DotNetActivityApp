@@ -22,18 +22,27 @@ public class UserAndActivitiesController : ControllerBase
     [HttpPost]
     [Route("activity-name-user")]
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
+    [ProducesResponseType(typeof(ErrorResponseDTO), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponseDTO), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponseDTO), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult PostActivityForUser([FromBody] ActivityNameDTO activityNameDTO)
     {
         try
         {
             if (HttpContext.User.Identity.IsAuthenticated)
             {
+                if (activityNameDTO == null || activityNameDTO.Name == null)
+                {
+                    return BadRequest(new ErrorResponseDTO{ Status = 400, Error = "Invalid data." });
+                }
                 var username = HttpContext.User.Identity.Name;
                 var user = context.MyUser.FirstOrDefault(u => u.Email == username);
                 var activity = context.Activities.FirstOrDefault(ac => ac.Name == activityNameDTO.Name);
                 if (activity == null || user == null)
                 {
-                    return NotFound(new { status = 404, message = "Activity do not exist" });
+                    return NotFound(new ErrorResponseDTO{ Status = 404, Error = "Activity do not exist." });
                 }
 
                 var actforuser = new MyUser_Activities();
@@ -46,7 +55,7 @@ public class UserAndActivitiesController : ControllerBase
             }
             else
             {
-                return Unauthorized(new { status = 401, message = "Unauthorized access." });
+                return Unauthorized(new ErrorResponseDTO{ Status = 401, Error = "Unauthorized access." });
             }
         }
         catch (Exception ex)
@@ -59,6 +68,10 @@ public class UserAndActivitiesController : ControllerBase
     [HttpGet]
     [Route("activity-for-user")]
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
+    [ProducesResponseType(typeof(ErrorResponseDTO), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponseDTO), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(List<ActivitiesForUserDTO>),StatusCodes.Status200OK)]
     public IActionResult GetActivitiesForUser()
     {
         try
@@ -69,7 +82,7 @@ public class UserAndActivitiesController : ControllerBase
                 var user = context.MyUser.FirstOrDefault(u => u.Email == username);
                 if (user == null)
                 {
-                    return NotFound(new { status = 404, message = "User do not exist" });
+                    return NotFound(new ErrorResponseDTO{ Status = 404, Error = "User do not exist" });
                 }
                 var act = context.MyUser_Activities.Where(ac => ac.UserId == user.Id).ToList();
                 var activityDTOs = new List<ActivitiesForUserDTO>();
@@ -110,7 +123,7 @@ public class UserAndActivitiesController : ControllerBase
             }
             else
             {
-                return Unauthorized(new { status = 401, message = "Unauthorized access." });
+                return Unauthorized(new ErrorResponseDTO{ Status = 401, Error = "Unauthorized access." });
             }
         }
         catch (Exception ex)

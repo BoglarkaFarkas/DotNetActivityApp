@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "ffP1GXmJSMiot1gaKWtMxnszxphxWxrI+PpnMSNma6ufWJSz4Au4oeMlYK6b7Hfdf0/MtzvrrEYkc4oGKzmNEA==",
+  "dgSpecHash": "fgLU/LAJ1vZxvk7bY5GUt89tC+RN5RLQAS9nIfvvM71KHCjV8bYNRpfzYDAi+cPHGTmatJH6v7qe8yq7XwOvlw==",
   "success": true,
   "projectFilePath": "C:\\Users\\Bogi\\Desktop\\stu\\ING\\TP\\AppFarkas\\myappdotnet\\myappdotnet.csproj",
   "expectedPackageFiles": [
@@ -11,6 +11,7 @@
     "C:\\Users\\Bogi\\.nuget\\packages\\microsoft.entityframeworkcore.analyzers\\6.0.12\\microsoft.entityframeworkcore.analyzers.6.0.12.nupkg.sha512",
     "C:\\Users\\Bogi\\.nuget\\packages\\microsoft.entityframeworkcore.design\\6.0.0\\microsoft.entityframeworkcore.design.6.0.0.nupkg.sha512",
     "C:\\Users\\Bogi\\.nuget\\packages\\microsoft.entityframeworkcore.relational\\6.0.12\\microsoft.entityframeworkcore.relational.6.0.12.nupkg.sha512",
+    "C:\\Users\\Bogi\\.nuget\\packages\\microsoft.extensions.apidescription.server\\6.0.5\\microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
     "C:\\Users\\Bogi\\.nuget\\packages\\microsoft.extensions.caching.abstractions\\6.0.0\\microsoft.extensions.caching.abstractions.6.0.0.nupkg.sha512",
     "C:\\Users\\Bogi\\.nuget\\packages\\microsoft.extensions.caching.memory\\6.0.1\\microsoft.extensions.caching.memory.6.0.1.nupkg.sha512",
     "C:\\Users\\Bogi\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\6.0.0\\microsoft.extensions.configuration.abstractions.6.0.0.nupkg.sha512",
@@ -20,8 +21,13 @@
     "C:\\Users\\Bogi\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\6.0.0\\microsoft.extensions.logging.abstractions.6.0.0.nupkg.sha512",
     "C:\\Users\\Bogi\\.nuget\\packages\\microsoft.extensions.options\\6.0.0\\microsoft.extensions.options.6.0.0.nupkg.sha512",
     "C:\\Users\\Bogi\\.nuget\\packages\\microsoft.extensions.primitives\\6.0.0\\microsoft.extensions.primitives.6.0.0.nupkg.sha512",
+    "C:\\Users\\Bogi\\.nuget\\packages\\microsoft.openapi\\1.2.3\\microsoft.openapi.1.2.3.nupkg.sha512",
     "C:\\Users\\Bogi\\.nuget\\packages\\npgsql\\6.0.8\\npgsql.6.0.8.nupkg.sha512",
     "C:\\Users\\Bogi\\.nuget\\packages\\npgsql.entityframeworkcore.postgresql\\6.0.8\\npgsql.entityframeworkcore.postgresql.6.0.8.nupkg.sha512",
+    "C:\\Users\\Bogi\\.nuget\\packages\\swashbuckle.aspnetcore\\6.5.0\\swashbuckle.aspnetcore.6.5.0.nupkg.sha512",
+    "C:\\Users\\Bogi\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\6.5.0\\swashbuckle.aspnetcore.swagger.6.5.0.nupkg.sha512",
+    "C:\\Users\\Bogi\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\6.5.0\\swashbuckle.aspnetcore.swaggergen.6.5.0.nupkg.sha512",
+    "C:\\Users\\Bogi\\.nuget\\packages\\swashbuckle.aspnetcore.swaggerui\\6.5.0\\swashbuckle.aspnetcore.swaggerui.6.5.0.nupkg.sha512",
     "C:\\Users\\Bogi\\.nuget\\packages\\system.collections.immutable\\6.0.0\\system.collections.immutable.6.0.0.nupkg.sha512",
     "C:\\Users\\Bogi\\.nuget\\packages\\system.diagnostics.diagnosticsource\\6.0.0\\system.diagnostics.diagnosticsource.6.0.0.nupkg.sha512",
     "C:\\Users\\Bogi\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\6.0.0\\system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512"

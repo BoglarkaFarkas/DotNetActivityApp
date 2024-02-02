@@ -1,9 +1,10 @@
-﻿using myappdotnet.Controllers;
+﻿﻿using myappdotnet.Controllers;
 using Microsoft.EntityFrameworkCore;
 using myappdotnet.Model;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using myappdotnet.Service;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAuthorization(); 
@@ -25,14 +26,40 @@ builder.Services.AddAuthorization(options =>
         .RequireAuthenticatedUser()
         .Build();
 });
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("Basic", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "basic",
+        Description = "Basic authentication header"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Basic"
+                }
+            },
+            new string[] { }
+        }
+    });
+});
 
 var app = builder.Build();
+app.UseSwaggerUI();
 app.UseRouting();
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 }
-
+app.UseSwagger(x => x.SerializeAsV2 = true);
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
@@ -45,4 +72,3 @@ app.UseEndpoints(endpoints =>
 });
 
 app.Run();
-

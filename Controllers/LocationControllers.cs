@@ -20,6 +20,9 @@ public class LocationsController : ControllerBase
     [HttpGet]
     [Route("all-location")]
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
+    [ProducesResponseType(typeof(ErrorResponseDTO), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(List<AboutLocationDTO>), StatusCodes.Status200OK)]
     public IActionResult GetAllLocations()
     {
 
@@ -45,6 +48,9 @@ public class LocationsController : ControllerBase
     [HttpGet]
     [Route("all-cities")]
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
+    [ProducesResponseType(typeof(ErrorResponseDTO), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(List<LocationCityDTO>), StatusCodes.Status200OK)]
     public IActionResult GetAllCities()
     {
 
@@ -69,6 +75,10 @@ public class LocationsController : ControllerBase
     [HttpGet]
     [Route("location-id/{id}")]
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
+    [ProducesResponseType(typeof(ErrorResponseDTO), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponseDTO), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(AboutLocationDTO), StatusCodes.Status200OK)]
     public IActionResult GetLocationById(int id)
     {
         try
@@ -76,7 +86,7 @@ public class LocationsController : ControllerBase
             var location = context.Location.FirstOrDefault(loc => loc.Id == id);
             if (location == null)
             {
-                return NotFound(new { status = 404, message = "Location do not exist" });
+                return NotFound(new ErrorResponseDTO { Status = 404, Error = "Location do not exist" });
             }
 
             var locationDTO = new AboutLocationDTO
@@ -98,6 +108,10 @@ public class LocationsController : ControllerBase
     [HttpGet]
     [Route("location-city/{name}")]
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
+    [ProducesResponseType(typeof(ErrorResponseDTO), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponseDTO), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(List<AboutLocationDTO>), StatusCodes.Status200OK)]
     public IActionResult GetLocationByCity(string name)
     {
 
@@ -106,7 +120,7 @@ public class LocationsController : ControllerBase
             var locations = context.Location.Where(u => u.NameCity == name).ToList();
             if (locations.Count == 0)
             {
-                return NotFound(new { status = 404, message = "Location do not exist" });
+                return NotFound(new ErrorResponseDTO { Status = 404, Error = "Location do not exist" });
             }
 
             var locationDTOs = locations.Select(location => new AboutLocationDTO
@@ -128,6 +142,9 @@ public class LocationsController : ControllerBase
     [HttpGet]
     [Route("locations-with-activities")]
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
+    [ProducesResponseType(typeof(ErrorResponseDTO), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(List<LocationWithActivitiesDTO>), StatusCodes.Status200OK)]
     public IActionResult GetLocationWithActivities()
     {
 
