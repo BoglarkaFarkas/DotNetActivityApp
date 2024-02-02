@@ -18,175 +18,149 @@ public class LocationsController : ControllerBase
         this.authService = new AuthService(context);
     }
     [HttpGet]
-    [Route("alllocation")]
+    [Route("all-location")]
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetAllLocations()
     {
-        if (HttpContext.User.Identity.IsAuthenticated)
-        {
-            try
-            {
-                var locations = context.Location.ToList();
-                var locationDTOs = locations.Select(location => new AboutLocationDTO
-                {
-                    NameCity = location.NameCity,
-                    ExactLocation = location.ExactLocation
-                }).ToList();
 
-                return Ok(locationDTOs);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return StatusCode(500, new { error = "Internal Server Error" });
-            }
-        }
-        else
+        try
         {
-            return Unauthorized(new { status = 401, message = "Unauthorized access." });
+            var locations = context.Location.ToList();
+            var locationDTOs = locations.Select(location => new AboutLocationDTO
+            {
+                NameCity = location.NameCity,
+                ExactLocation = location.ExactLocation
+            }).ToList();
+
+            return Ok(locationDTOs);
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return StatusCode(500, new { error = "Internal Server Error" });
+        }
+
     }
 
     [HttpGet]
-    [Route("allcities")]
+    [Route("all-cities")]
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetAllCities()
     {
-        if (HttpContext.User.Identity.IsAuthenticated)
-        {
-            try
-            {
-                var locations = context.Location.Select(loc => loc.NameCity).Distinct().ToList();
-                var locationDTOs = locations.Select(nameCity => new LocationCityDTO
-                {
-                    NameCity = nameCity
-                }).ToList();
 
-                return Ok(locationDTOs);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return StatusCode(500, new { error = "Internal Server Error" });
-            }
-        }
-        else
+        try
         {
-            return Unauthorized(new { status = 401, message = "Unauthorized access." });
+            var locations = context.Location.Select(loc => loc.NameCity).Distinct().ToList();
+            var locationDTOs = locations.Select(nameCity => new LocationCityDTO
+            {
+                NameCity = nameCity
+            }).ToList();
+
+            return Ok(locationDTOs);
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return StatusCode(500, new { error = "Internal Server Error" });
+        }
+
     }
 
     [HttpGet]
-    [Route("LocationId/{id}")]
+    [Route("location-id/{id}")]
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetLocationById(int id)
     {
-        if (HttpContext.User.Identity.IsAuthenticated)
+        try
         {
-            try
+            var location = context.Location.FirstOrDefault(loc => loc.Id == id);
+            if (location == null)
             {
-                var location = context.Location.FirstOrDefault(loc => loc.Id == id);
-                if (location == null)
-                {
-                    return NotFound(new { status = 404, message = "Location do not exist" });
-                }
-
-                var locationDTO = new AboutLocationDTO
-                {
-                    NameCity = location.NameCity,
-                    ExactLocation = location.ExactLocation
-                };
-
-                return Ok(locationDTO);
+                return NotFound(new { status = 404, message = "Location do not exist" });
             }
-            catch (Exception ex)
+
+            var locationDTO = new AboutLocationDTO
             {
-                Console.WriteLine(ex.Message);
-                return StatusCode(500, new { error = "Internal Server Error" });
-            }
+                NameCity = location.NameCity,
+                ExactLocation = location.ExactLocation
+            };
+
+            return Ok(locationDTO);
         }
-        else
+        catch (Exception ex)
         {
-            return Unauthorized(new { status = 401, message = "Unauthorized access." });
+            Console.WriteLine(ex.Message);
+            return StatusCode(500, new { error = "Internal Server Error" });
         }
+
     }
 
     [HttpGet]
-    [Route("LocationCity/{name}")]
+    [Route("location-city/{name}")]
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetLocationByCity(string name)
     {
-        if (HttpContext.User.Identity.IsAuthenticated)
-        {
-            try
-            {
-                var locations = context.Location.Where(u => u.NameCity == name).ToList();
-                if (locations.Count == 0)
-                {
-                    return NotFound(new { status = 404, message = "Location do not exist" });
-                }
 
-                var locationDTOs = locations.Select(location => new AboutLocationDTO
-                {
-                    NameCity = location.NameCity,
-                    ExactLocation = location.ExactLocation
-                }).ToList();
-
-                return Ok(locationDTOs);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return StatusCode(500, new { error = "Internal Server Error" });
-            }
-        }
-        else
+        try
         {
-            return Unauthorized(new { status = 401, message = "Unauthorized access." });
+            var locations = context.Location.Where(u => u.NameCity == name).ToList();
+            if (locations.Count == 0)
+            {
+                return NotFound(new { status = 404, message = "Location do not exist" });
+            }
+
+            var locationDTOs = locations.Select(location => new AboutLocationDTO
+            {
+                NameCity = location.NameCity,
+                ExactLocation = location.ExactLocation
+            }).ToList();
+
+            return Ok(locationDTOs);
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return StatusCode(500, new { error = "Internal Server Error" });
+        }
+
     }
 
     [HttpGet]
-    [Route("locationswithactivities")]
+    [Route("locations-with-activities")]
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetLocationWithActivities()
     {
-        if (HttpContext.User.Identity.IsAuthenticated)
-        {
-            try
-            {
-                var locations = context.Location.ToList();
-                var locationDTOs = locations.Select(location =>
-                {
-                    var activities = context.Activities
-                        .Where(activity => activity.LocationId == location.Id)
-                        .Select(activity => new ActivityDTO
-                        {
-                            Name = activity.Name,
-                            Price = activity.Price,
-                            Time = activity.Time
-                        }).ToList();
 
-                    return new LocationWithActivitiesDTO
+        try
+        {
+            var locations = context.Location.ToList();
+            var locationDTOs = locations.Select(location =>
+            {
+                var activities = context.Activities
+                    .Where(activity => activity.LocationId == location.Id)
+                    .Select(activity => new ActivityDTO
                     {
-                        NameCity = location.NameCity,
-                        ExactLocation = location.ExactLocation,
-                        Activities = activities
-                    };
-                }).ToList();
+                        Name = activity.Name,
+                        Price = activity.Price,
+                        Time = activity.Time
+                    }).ToList();
 
-                return Ok(locationDTOs);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return StatusCode(500, new { error = "Internal Server Error" });
-            }
+                return new LocationWithActivitiesDTO
+                {
+                    NameCity = location.NameCity,
+                    ExactLocation = location.ExactLocation,
+                    Activities = activities
+                };
+            }).ToList();
+
+            return Ok(locationDTOs);
         }
-        else
+        catch (Exception ex)
         {
-            return Unauthorized(new { status = 401, message = "Unauthorized access." });
+            Console.WriteLine(ex.Message);
+            return StatusCode(500, new { error = "Internal Server Error" });
         }
+
     }
 
 }

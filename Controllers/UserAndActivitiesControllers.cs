@@ -20,7 +20,7 @@ public class UserAndActivitiesController : ControllerBase
     }
 
     [HttpPost]
-    [Route("activityNameUser")]
+    [Route("activity-name-user")]
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult PostActivityForUser([FromBody] ActivityNameDTO activityNameDTO)
     {
@@ -57,7 +57,7 @@ public class UserAndActivitiesController : ControllerBase
     }
 
     [HttpGet]
-    [Route("activityForUser")]
+    [Route("activity-for-user")]
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetActivitiesForUser()
     {

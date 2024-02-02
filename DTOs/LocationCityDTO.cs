@@ -1,5 +1,5 @@
 namespace myappdotnet.DTOs;
 public class LocationCityDTO
 {
-    public string NameCity { get; set; }
+    public string? NameCity { get; set; }
 }
