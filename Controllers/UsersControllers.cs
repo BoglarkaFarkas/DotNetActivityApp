@@ -24,7 +24,7 @@ public class UsersController : ControllerBase
     {
         try
         {
-            if (loginDTO == null)
+            if (loginDTO == null || loginDTO.Email == null || loginDTO.Password == null)
             {
                 return BadRequest(new { status = 400, message = "Invalid data" });
             }
@@ -70,7 +70,7 @@ public class UsersController : ControllerBase
     {
         try
         {
-            if (createUserDTO == null)
+            if (createUserDTO == null || createUserDTO.Email == null || createUserDTO.Password == null || createUserDTO.Surname == null || createUserDTO.First_name == null)
             {
                 return BadRequest(new { status = 400, message = "Invalid data" });
             }
@@ -217,5 +217,41 @@ public class UsersController : ControllerBase
         };
 
         return Ok(userDTO);
+    }
+
+    [HttpDelete]
+    [Route("delete-user")]
+    [Authorize(AuthenticationSchemes = "BasicAuthentication")]
+    public IActionResult DeleteUser()
+    {
+        if (HttpContext.User.Identity.IsAuthenticated)
+        {
+            var username = HttpContext.User.Identity.Name;
+            var user = context.MyUser.FirstOrDefault(u => u.Email == username);
+
+            if (user == null)
+            {
+                return NotFound(new { status = 404, message = "User do not exist" });
+            }
+            int id_user = user.Id;
+            var userActivities = context.MyUser_Activities.Where(ua => ua.UserId == id_user).ToList();
+            if (userActivities.Any())
+            {
+                context.MyUser_Activities.RemoveRange(userActivities);
+            }
+            var userToRemove = context.MyUser.FirstOrDefault(u => u.Id == id_user);
+            if (userToRemove != null)
+            {
+                context.MyUser.Remove(userToRemove);
+            }
+
+            context.SaveChanges();
+
+            return Ok(new { message = "Teh user was deleted." });
+        }
+        else
+        {
+            return Unauthorized(new { status = 401, message = "Unauthorized access." });
+        }
     }
 }
