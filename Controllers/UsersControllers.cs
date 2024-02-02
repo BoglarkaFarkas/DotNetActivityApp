@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using myappdotnet.DTOs;
 using myappdotnet.Model;
 using myappdotnet.Service;
+using System.Net.Mail;
 
 namespace myappdotnet.Controllers;
 
@@ -15,23 +16,23 @@ public class UsersController : ControllerBase
     public UsersController(ApplicationDbContext context)
     {
         this.context = context;
-        this.authService = new AuthService(context); 
+        this.authService = new AuthService(context);
     }
     [HttpPost]
-    [Route("Login")]
+    [Route("login")]
     public IActionResult Login([FromBody] LoginDTO loginDTO)
     {
         try
         {
             if (loginDTO == null)
             {
-                return BadRequest("Invalid data");
+                return BadRequest(new { status = 400, message = "Invalid data" });
             }
             bool isAuthenticated = authService.AuthenticateUser(loginDTO.Email, loginDTO.Password);
 
             if (!isAuthenticated)
             {
-                return Unauthorized(new { error = "Invalid credentials" });
+                return Unauthorized(new { status = 401, error = "Invalid credentials" });
             }
             return Ok(new { message = "Login successful" });
         }
@@ -40,9 +41,9 @@ public class UsersController : ControllerBase
             Console.WriteLine(ex.Message);
             return StatusCode(500, new { error = "Internal Server Error" });
         }
-    }       
+    }
     [HttpGet]
-    [Route("users")]
+    [Route("all-users")]
     public IEnumerable<AboutUserDTO> GetUsers()
     {
         var users = context.MyUser.ToList();
@@ -64,51 +65,56 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost]
-    [Route("User")]
+    [Route("create-user")]
     public IActionResult CreateUser([FromBody] CreateUserDTO createUserDTO)
     {
-        try{
+        try
+        {
             if (createUserDTO == null)
             {
-                return BadRequest("Invalid data");
+                return BadRequest(new { status = 400, message = "Invalid data" });
             }
 
+            try
+            {
+                MailAddress mailAddress = new MailAddress(createUserDTO.Email);
+            }
+            catch (FormatException)
+            {
+                return BadRequest(new { status = 400, message = "Invalid email address" });
+            }
             bool registrationSuccess = authService.RegisterUser(createUserDTO.Email, createUserDTO.Password, createUserDTO.Surname, createUserDTO.First_name);
 
             if (registrationSuccess)
             {
-                return Ok(new { message = "Registration successful"  });
+                return Ok(new { message = "Registration successful" });
             }
             else
             {
-                return BadRequest(new { error = "Registration failed"});
+                return BadRequest(new { status = 400, error = "Registration failed" });
             }
         }
-        catch (Exception ex){
+        catch (Exception ex)
+        {
             Console.WriteLine(ex.Message);
             return StatusCode(500, new { error = "Internal Server Error" });
         }
 
     }
-    [HttpGet]
-    [Route("hellobello")]
-    [Authorize(AuthenticationSchemes = "BasicAuthentication")]
-    public IActionResult Hello()
-    {
-        return Ok(new { message = "Hello World!" });
-    }
 
     [HttpGet]
-    [Route("aboutuser")]
+    [Route("about-user")]
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetUserInfo()
     {
-        if (HttpContext.User.Identity.IsAuthenticated){
+        if (HttpContext.User.Identity.IsAuthenticated)
+        {
             var username = HttpContext.User.Identity.Name;
             var user = context.MyUser.FirstOrDefault(u => u.Email == username);
 
-            if (user == null){
-                return NotFound();
+            if (user == null)
+            {
+                return NotFound(new { status = 404, message = "User do not exist" });
             }
 
             var userDTO = new AboutUserDTO
@@ -120,56 +126,66 @@ public class UsersController : ControllerBase
 
             return Ok(userDTO);
         }
-        else{
-        return Unauthorized(); 
+        else
+        {
+            return Unauthorized(new { status = 401, message = "Unauthorized access." });
         }
     }
 
     [HttpPut]
-    [Route("updatepassword")]
+    [Route("update-password")]
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult UpdatePassword([FromBody] PasswordChangeDTO passwordChange)
     {
-        try{
+        try
+        {
             if (passwordChange == null)
             {
-                return BadRequest("Invalid data");
+                return BadRequest(new { status = 400, message = "Invalid data" });
             }
-            if (HttpContext.User.Identity.IsAuthenticated){
+            if (HttpContext.User.Identity.IsAuthenticated)
+            {
                 var username = HttpContext.User.Identity.Name;
                 var user = context.MyUser.FirstOrDefault(u => u.Email == username);
                 if (user == null)
                 {
-                    return BadRequest("Invalid data");
-                }       
+                    return NotFound(new { status = 404, message = "User do not exist" });
+                }
                 bool psw = BCrypt.Net.BCrypt.Verify(passwordChange.CurrentPassword, user.Password);
-                if(psw){
+                if (psw)
+                {
                     string hashedPassword = BCrypt.Net.BCrypt.HashPassword(passwordChange.NewPassword);
                     user.Password = hashedPassword;
                     context.SaveChanges();
-                }else{
-                    return BadRequest("Invalid data");
                 }
- 
-                return Ok("Updated Password");
+                else
+                {
+                    return BadRequest(new { status = 400, message = "Invalid data" });
+                }
+
+                return Ok(new { message = "Updated password" });
             }
-            else{
-                return Unauthorized(); 
+            else
+            {
+                return Unauthorized(new { status = 401, message = "Unauthorized access." });
             }
-        }catch (Exception ex){
+        }
+        catch (Exception ex)
+        {
             Console.WriteLine(ex.Message);
             return StatusCode(500, new { error = "Internal Server Error" });
         }
     }
 
     [HttpGet]
-    [Route("UserId/{id}")]
-    public IActionResult GetUsersById(int id){
+    [Route("user-id/{id}")]
+    public IActionResult GetUsersById(int id)
+    {
         var user = context.MyUser.FirstOrDefault(u => u.Id == id);
 
         if (user == null)
         {
-            return NotFound(); 
+            return NotFound(new { status = 404, message = "User do not exist" });
         }
 
         var userDTO = new AboutUserDTO
@@ -179,17 +195,18 @@ public class UsersController : ControllerBase
             First_name = user.First_name
         };
 
-        return Ok(userDTO); 
+        return Ok(userDTO);
     }
 
     [HttpGet]
-    [Route("UserEmail/{email}")]
-    public IActionResult GetUsersByEmail(string email){
+    [Route("user-email/{email}")]
+    public IActionResult GetUsersByEmail(string email)
+    {
         var user = context.MyUser.FirstOrDefault(u => u.Email == email);
 
         if (user == null)
         {
-            return NotFound(); 
+            return NotFound(new { status = 404, message = "User do not exist" });
         }
 
         var userDTO = new AboutUserDTO
@@ -199,13 +216,6 @@ public class UsersController : ControllerBase
             First_name = user.First_name
         };
 
-        return Ok(userDTO); 
-    }
-
-    [HttpGet]
-    [Route("Hello")]
-    public String GetUsersasd()
-    {
-        return "Helloka";
+        return Ok(userDTO);
     }
 }
