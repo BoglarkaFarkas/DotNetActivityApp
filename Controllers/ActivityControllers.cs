@@ -24,40 +24,47 @@ public class ActivityController : ControllerBase
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetAllActivities()
     {
-        try
+        if (HttpContext.User.Identity.IsAuthenticated)
         {
-            var activities = context.Activities.ToList();
-            var activitiesDTO = activities.Select(activity =>
+            try
             {
-                var location = context.Location.FirstOrDefault(l => l.Id == activity.LocationId);
-                if (location != null)
+                var activities = context.Activities.ToList();
+                var activitiesDTO = activities.Select(activity =>
                 {
-                    var locationDTO = new AboutLocationDTO
+                    var location = context.Location.FirstOrDefault(l => l.Id == activity.LocationId);
+                    if (location != null)
                     {
-                        NameCity = location.NameCity,
-                        ExactLocation = location.ExactLocation
-                    };
+                        var locationDTO = new AboutLocationDTO
+                        {
+                            NameCity = location.NameCity,
+                            ExactLocation = location.ExactLocation
+                        };
 
-                    return new AboutActivityDTO
+                        return new AboutActivityDTO
+                        {
+                            Name = activity.Name,
+                            Price = activity.Price,
+                            Time = activity.Time,
+                            Location = locationDTO
+                        };
+                    }
+                    else
                     {
-                        Name = activity.Name,
-                        Price = activity.Price,
-                        Time = activity.Time,
-                        Location = locationDTO
-                    };
-                }
-                else
-                {
-                    return null;
-                }
-            }).Where(dto => dto != null).ToList();
+                        return null;
+                    }
+                }).Where(dto => dto != null).ToList();
 
-            return Ok(activitiesDTO);
+                return Ok(activitiesDTO);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, new { error = "Internal Server Error" });
+            }
         }
-        catch (Exception ex)
+        else
         {
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, new { error = "Internal Server Error" });
+            return Unauthorized(new { status = 401, message = "Unauthorized access." });
         }
     }
 
@@ -66,20 +73,27 @@ public class ActivityController : ControllerBase
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetActivitiesName()
     {
-        try
+        if (HttpContext.User.Identity.IsAuthenticated)
         {
-            var activities = context.Activities.ToList();
-            var activitiesDTO = activities.Select(activities => new ActivityNameDTO
+            try
             {
-                Name = activities.Name
-            }).ToList();
+                var activities = context.Activities.ToList();
+                var activitiesDTO = activities.Select(activities => new ActivityNameDTO
+                {
+                    Name = activities.Name
+                }).ToList();
 
-            return Ok(activitiesDTO);
+                return Ok(activitiesDTO);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, new { error = "Internal Server Error" });
+            }
         }
-        catch (Exception ex)
+        else
         {
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, new { error = "Internal Server Error" });
+            return Unauthorized(new { status = 401, message = "Unauthorized access." });
         }
     }
 
@@ -88,39 +102,45 @@ public class ActivityController : ControllerBase
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetActivityById(int id)
     {
-
-        try
+        if (HttpContext.User.Identity.IsAuthenticated)
         {
-            var activity = context.Activities.FirstOrDefault(ac => ac.Id == id);
-            if (activity == null)
+            try
             {
-                return NotFound();
-            }
-            var location = context.Location.FirstOrDefault(l => l.Id == activity.LocationId);
-            if (location == null)
-            {
-                return NotFound();
-            }
-            var locationDTO = new AboutLocationDTO
-            {
-                NameCity = location.NameCity,
-                ExactLocation = location.ExactLocation
-            };
+                var activity = context.Activities.FirstOrDefault(ac => ac.Id == id);
+                if (activity == null)
+                {
+                    return NotFound(new { status = 404, message = "Activity do not exist" });
+                }
+                var location = context.Location.FirstOrDefault(l => l.Id == activity.LocationId);
+                if (location == null)
+                {
+                    return NotFound(new { status = 404, message = "Location do not exist" });
+                }
+                var locationDTO = new AboutLocationDTO
+                {
+                    NameCity = location.NameCity,
+                    ExactLocation = location.ExactLocation
+                };
 
-            var activityDTO = new AboutActivityDTO
-            {
-                Name = activity.Name,
-                Price = activity.Price,
-                Time = activity.Time,
-                Location = locationDTO
-            };
+                var activityDTO = new AboutActivityDTO
+                {
+                    Name = activity.Name,
+                    Price = activity.Price,
+                    Time = activity.Time,
+                    Location = locationDTO
+                };
 
-            return Ok(activityDTO);
+                return Ok(activityDTO);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, new { error = "Internal Server Error" });
+            }
         }
-        catch (Exception ex)
+        else
         {
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, new { error = "Internal Server Error" });
+            return Unauthorized(new { status = 401, message = "Unauthorized access." });
         }
     }
 
@@ -129,38 +149,44 @@ public class ActivityController : ControllerBase
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetActivityByName(string name)
     {
-
-        try
+        if (HttpContext.User.Identity.IsAuthenticated)
         {
-            var activity = context.Activities.FirstOrDefault(ac => ac.Name == name);
-            if (activity == null)
+            try
             {
-                return NotFound();
-            }
-            var location = context.Location.FirstOrDefault(l => l.Id == activity.LocationId);
-            if (location == null)
-            {
-                return NotFound();
-            }
-            var locationDTO = new AboutLocationDTO
-            {
-                NameCity = location.NameCity,
-                ExactLocation = location.ExactLocation
-            };
-            var activityDTO = new AboutActivityDTO
-            {
-                Name = activity.Name,
-                Price = activity.Price,
-                Time = activity.Time,
-                Location = locationDTO
-            };
+                var activity = context.Activities.FirstOrDefault(ac => ac.Name == name);
+                if (activity == null)
+                {
+                    return NotFound(new { status = 404, message = "Activity do not exist" });
+                }
+                var location = context.Location.FirstOrDefault(l => l.Id == activity.LocationId);
+                if (location == null)
+                {
+                    return NotFound(new { status = 404, message = "Location do not exist" });
+                }
+                var locationDTO = new AboutLocationDTO
+                {
+                    NameCity = location.NameCity,
+                    ExactLocation = location.ExactLocation
+                };
+                var activityDTO = new AboutActivityDTO
+                {
+                    Name = activity.Name,
+                    Price = activity.Price,
+                    Time = activity.Time,
+                    Location = locationDTO
+                };
 
-            return Ok(activityDTO);
+                return Ok(activityDTO);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, new { error = "Internal Server Error" });
+            }
         }
-        catch (Exception ex)
+        else
         {
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, new { error = "Internal Server Error" });
+            return Unauthorized(new { status = 401, message = "Unauthorized access." });
         }
     }
 
@@ -169,20 +195,27 @@ public class ActivityController : ControllerBase
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetAllPrices()
     {
-        try
+        if (HttpContext.User.Identity.IsAuthenticated)
         {
-            var activity = context.Activities.Select(ac => ac.Price).Distinct().ToList();
-            var activityDTO = activity.Select(price => new ActivityPriceDTO
+            try
             {
-                Price = price
-            }).ToList();
+                var activity = context.Activities.Select(ac => ac.Price).Distinct().ToList();
+                var activityDTO = activity.Select(price => new ActivityPriceDTO
+                {
+                    Price = price
+                }).ToList();
 
-            return Ok(activityDTO);
+                return Ok(activityDTO);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, new { error = "Internal Server Error" });
+            }
         }
-        catch (Exception ex)
+        else
         {
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, new { error = "Internal Server Error" });
+            return Unauthorized(new { status = 401, message = "Unauthorized access." });
         }
     }
 
@@ -191,45 +224,52 @@ public class ActivityController : ControllerBase
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     public IActionResult GetActivityByPrice(double price)
     {
-        try
+        if (HttpContext.User.Identity.IsAuthenticated)
         {
-            var activity = context.Activities.Where(a => a.Price == price).ToList();
-            if (activity.Count == 0)
+            try
             {
-                return NotFound();
+                var activity = context.Activities.Where(a => a.Price == price).ToList();
+                if (activity.Count == 0)
+                {
+                    return NotFound(new { status = 404, message = "Activity do not exist" });
+                }
+
+                var activitiesDTO = activity.Select(activity =>
+                {
+                    var location = context.Location.FirstOrDefault(l => l.Id == activity.LocationId);
+                    if (location != null)
+                    {
+                        var locationDTO = new AboutLocationDTO
+                        {
+                            NameCity = location.NameCity,
+                            ExactLocation = location.ExactLocation
+                        };
+
+                        return new AboutActivityDTO
+                        {
+                            Name = activity.Name,
+                            Price = activity.Price,
+                            Time = activity.Time,
+                            Location = locationDTO
+                        };
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }).Where(dto => dto != null).ToList();
+
+                return Ok(activitiesDTO);
             }
-
-            var activitiesDTO = activity.Select(activity =>
+            catch (Exception ex)
             {
-                var location = context.Location.FirstOrDefault(l => l.Id == activity.LocationId);
-                if (location != null)
-                {
-                    var locationDTO = new AboutLocationDTO
-                    {
-                        NameCity = location.NameCity,
-                        ExactLocation = location.ExactLocation
-                    };
-
-                    return new AboutActivityDTO
-                    {
-                        Name = activity.Name,
-                        Price = activity.Price,
-                        Time = activity.Time,
-                        Location = locationDTO
-                    };
-                }
-                else
-                {
-                    return null;
-                }
-            }).Where(dto => dto != null).ToList();
-
-            return Ok(activitiesDTO);
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, new { error = "Internal Server Error" });
+            }
         }
-        catch (Exception ex)
+        else
         {
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, new { error = "Internal Server Error" });
+            return Unauthorized(new { status = 401, message = "Unauthorized access." });
         }
     }
 }
