@@ -75,7 +75,6 @@ public class ActivityController : ControllerBase
     [ProducesResponseType(typeof(List<ActivityNameDTO>), StatusCodes.Status200OK)]
     public IActionResult GetActivitiesName()
     {
-
         try
         {
             var activities = context.Activities.ToList();
@@ -91,7 +90,6 @@ public class ActivityController : ControllerBase
             Console.WriteLine(ex.Message);
             return StatusCode(500, new { error = "Internal Server Error" });
         }
-
     }
 
     [HttpGet]
@@ -103,18 +101,17 @@ public class ActivityController : ControllerBase
     [ProducesResponseType(typeof(AboutActivityDTO), StatusCodes.Status200OK)]
     public IActionResult GetActivityById(int id)
     {
-
         try
         {
             var activity = context.Activities.FirstOrDefault(ac => ac.Id == id);
             if (activity == null)
             {
-                return NotFound(new ErrorResponseDTO{ Status = 404, Error = "Activity do not exist" });
+                return NotFound(new ErrorResponseDTO { Status = 404, Error = "Activity do not exist" });
             }
             var location = context.Location.FirstOrDefault(l => l.Id == activity.LocationId);
             if (location == null)
             {
-                return NotFound(new ErrorResponseDTO{ Status = 404, Error = "Location do not exist" });
+                return NotFound(new ErrorResponseDTO { Status = 404, Error = "Location do not exist" });
             }
             var locationDTO = new AboutLocationDTO
             {
@@ -137,7 +134,6 @@ public class ActivityController : ControllerBase
             Console.WriteLine(ex.Message);
             return StatusCode(500, new { error = "Internal Server Error" });
         }
-
     }
 
     [HttpGet]
@@ -154,12 +150,12 @@ public class ActivityController : ControllerBase
             var activity = context.Activities.FirstOrDefault(ac => ac.Name == name);
             if (activity == null)
             {
-                return NotFound(new ErrorResponseDTO{ Status = 404, Error = "Activity do not exist" });
+                return NotFound(new ErrorResponseDTO { Status = 404, Error = "Activity do not exist" });
             }
             var location = context.Location.FirstOrDefault(l => l.Id == activity.LocationId);
             if (location == null)
             {
-                return NotFound(new ErrorResponseDTO{ Status = 404, Error = "Location do not exist" });
+                return NotFound(new ErrorResponseDTO { Status = 404, Error = "Location do not exist" });
             }
             var locationDTO = new AboutLocationDTO
             {
@@ -181,7 +177,6 @@ public class ActivityController : ControllerBase
             Console.WriteLine(ex.Message);
             return StatusCode(500, new { error = "Internal Server Error" });
         }
-
     }
 
     [HttpGet]
@@ -192,7 +187,6 @@ public class ActivityController : ControllerBase
     [ProducesResponseType(typeof(List<ActivityPriceDTO>), StatusCodes.Status200OK)]
     public IActionResult GetAllPrices()
     {
-
         try
         {
             var activity = context.Activities.Select(ac => ac.Price).Distinct().ToList();
@@ -208,7 +202,6 @@ public class ActivityController : ControllerBase
             Console.WriteLine(ex.Message);
             return StatusCode(500, new { error = "Internal Server Error" });
         }
-
     }
 
     [HttpGet]
@@ -225,7 +218,7 @@ public class ActivityController : ControllerBase
             var activity = context.Activities.Where(a => a.Price == price).ToList();
             if (activity.Count == 0)
             {
-                return NotFound(new ErrorResponseDTO{ Status = 404, Error = "Activity do not exist" });
+                return NotFound(new ErrorResponseDTO { Status = 404, Error = "Activity do not exist" });
             }
 
             var activitiesDTO = activity.Select(activity =>

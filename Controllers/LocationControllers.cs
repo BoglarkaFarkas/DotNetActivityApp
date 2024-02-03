@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using myappdotnet.DTOs;
@@ -53,7 +54,6 @@ public class LocationsController : ControllerBase
     [ProducesResponseType(typeof(List<LocationCityDTO>), StatusCodes.Status200OK)]
     public IActionResult GetAllCities()
     {
-
         try
         {
             var locations = context.Location.Select(loc => loc.NameCity).Distinct().ToList();
@@ -69,7 +69,6 @@ public class LocationsController : ControllerBase
             Console.WriteLine(ex.Message);
             return StatusCode(500, new { error = "Internal Server Error" });
         }
-
     }
 
     [HttpGet]

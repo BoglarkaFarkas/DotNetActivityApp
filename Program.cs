@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using myappdotnet.Service;
 using Microsoft.OpenApi.Models;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAuthorization(); 
@@ -53,6 +54,23 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+app.Use(async (context, next) =>
+{
+    await next();
+
+    if (context.Response.StatusCode == StatusCodes.Status401Unauthorized && !context.Response.HasStarted)
+    {
+        context.Response.ContentType = "application/json";
+
+        var errorResponse = JsonSerializer.Serialize(new ErrorResponseDTO
+        {
+            Status = 401,
+            Error = "Access denied. User authentication is required."
+        });
+
+        await context.Response.WriteAsync(errorResponse);
+    }
+});
 app.UseSwaggerUI();
 app.UseRouting();
 if (app.Environment.IsDevelopment())

@@ -31,32 +31,24 @@ public class UserAndActivitiesController : ControllerBase
     {
         try
         {
-            if (HttpContext.User.Identity.IsAuthenticated)
+            if (activityNameDTO == null || activityNameDTO.Name == null)
             {
-                if (activityNameDTO == null || activityNameDTO.Name == null)
-                {
-                    return BadRequest(new ErrorResponseDTO{ Status = 400, Error = "Invalid data." });
-                }
-                var username = HttpContext.User.Identity.Name;
-                var user = context.MyUser.FirstOrDefault(u => u.Email == username);
-                var activity = context.Activities.FirstOrDefault(ac => ac.Name == activityNameDTO.Name);
-                if (activity == null || user == null)
-                {
-                    return NotFound(new ErrorResponseDTO{ Status = 404, Error = "Activity do not exist." });
-                }
-
-                var actforuser = new MyUser_Activities();
-                actforuser.ActivityId = activity.Id;
-                actforuser.UserId = user.Id;
-                context.MyUser_Activities.Add(actforuser);
-                context.SaveChanges();
-                return Ok(new { message = "Activity added for user." });
-
+                return BadRequest(new ErrorResponseDTO { Status = 400, Error = "Invalid data." });
             }
-            else
+            var username = HttpContext.User.Identity.Name;
+            var user = context.MyUser.FirstOrDefault(u => u.Email == username);
+            var activity = context.Activities.FirstOrDefault(ac => ac.Name == activityNameDTO.Name);
+            if (activity == null || user == null)
             {
-                return Unauthorized(new ErrorResponseDTO{ Status = 401, Error = "Unauthorized access." });
+                return NotFound(new ErrorResponseDTO { Status = 404, Error = "Activity do not exist." });
             }
+
+            var actforuser = new MyUser_Activities();
+            actforuser.ActivityId = activity.Id;
+            actforuser.UserId = user.Id;
+            context.MyUser_Activities.Add(actforuser);
+            context.SaveChanges();
+            return Ok(new { message = "Activity added for user." });
         }
         catch (Exception ex)
         {
@@ -71,60 +63,52 @@ public class UserAndActivitiesController : ControllerBase
     [ProducesResponseType(typeof(ErrorResponseDTO), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponseDTO), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [ProducesResponseType(typeof(List<ActivitiesForUserDTO>),StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<ActivitiesForUserDTO>), StatusCodes.Status200OK)]
     public IActionResult GetActivitiesForUser()
     {
         try
         {
-            if (HttpContext.User.Identity.IsAuthenticated)
+            var username = HttpContext.User.Identity.Name;
+            var user = context.MyUser.FirstOrDefault(u => u.Email == username);
+            if (user == null)
             {
-                var username = HttpContext.User.Identity.Name;
-                var user = context.MyUser.FirstOrDefault(u => u.Email == username);
-                if (user == null)
+                return NotFound(new ErrorResponseDTO { Status = 404, Error = "User do not exist" });
+            }
+            var act = context.MyUser_Activities.Where(ac => ac.UserId == user.Id).ToList();
+            var activityDTOs = new List<ActivitiesForUserDTO>();
+            foreach (var action in act)
+            {
+                var activities = context.Activities.FirstOrDefault(a => a.Id == action.ActivityId);
+                if (activities != null)
                 {
-                    return NotFound(new ErrorResponseDTO{ Status = 404, Error = "User do not exist" });
-                }
-                var act = context.MyUser_Activities.Where(ac => ac.UserId == user.Id).ToList();
-                var activityDTOs = new List<ActivitiesForUserDTO>();
-                foreach (var action in act)
-                {
-                    var activities = context.Activities.FirstOrDefault(a => a.Id == action.ActivityId);
-                    if (activities != null)
+                    var location = context.Location.FirstOrDefault(l => l.Id == activities.LocationId);
+                    if (location != null)
                     {
-                        var location = context.Location.FirstOrDefault(l => l.Id == activities.LocationId);
-                        if (location != null)
+                        var locationDTO = new AboutLocationDTO
                         {
-                            var locationDTO = new AboutLocationDTO
-                            {
-                                NameCity = location.NameCity,
-                                ExactLocation = location.ExactLocation
-                            };
+                            NameCity = location.NameCity,
+                            ExactLocation = location.ExactLocation
+                        };
 
-                            var activityDTO = new AboutActivityDTO
-                            {
-                                Name = activities.Name,
-                                Price = activities.Price,
-                                Time = activities.Time,
-                                Location = locationDTO
-                            };
-                            var activitiesDTO = new ActivitiesForUserDTO
-                            {
-                                CreatedAt = action.CreatedAt,
-                                Activity = activityDTO
-                            };
-                            activityDTOs.Add(activitiesDTO);
-                        }
-
+                        var activityDTO = new AboutActivityDTO
+                        {
+                            Name = activities.Name,
+                            Price = activities.Price,
+                            Time = activities.Time,
+                            Location = locationDTO
+                        };
+                        var activitiesDTO = new ActivitiesForUserDTO
+                        {
+                            CreatedAt = action.CreatedAt,
+                            Activity = activityDTO
+                        };
+                        activityDTOs.Add(activitiesDTO);
                     }
 
                 }
-                return Ok(activityDTOs);
 
             }
-            else
-            {
-                return Unauthorized(new ErrorResponseDTO{ Status = 401, Error = "Unauthorized access." });
-            }
+            return Ok(activityDTOs);
         }
         catch (Exception ex)
         {

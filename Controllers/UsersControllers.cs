@@ -118,29 +118,22 @@ public class UsersController : ControllerBase
     [ProducesResponseType(typeof(AboutUserDTO), StatusCodes.Status200OK)]
     public IActionResult GetUserInfo()
     {
-        if (HttpContext.User.Identity.IsAuthenticated)
+        var username = HttpContext.User.Identity.Name;
+        var user = context.MyUser.FirstOrDefault(u => u.Email == username);
+
+        if (user == null)
         {
-            var username = HttpContext.User.Identity.Name;
-            var user = context.MyUser.FirstOrDefault(u => u.Email == username);
-
-            if (user == null)
-            {
-                return NotFound(new ErrorResponseDTO { Status = 404, Error = "User do not exist" });
-            }
-
-            var userDTO = new AboutUserDTO
-            {
-                Email = user.Email,
-                Surname = user.Surname,
-                First_name = user.First_name
-            };
-
-            return Ok(userDTO);
+            return NotFound(new ErrorResponseDTO { Status = 404, Error = "User do not exist" });
         }
-        else
+
+        var userDTO = new AboutUserDTO
         {
-            return Unauthorized(new ErrorResponseDTO { Status = 401, Error = "Unauthorized access." });
-        }
+            Email = user.Email,
+            Surname = user.Surname,
+            First_name = user.First_name
+        };
+
+        return Ok(userDTO);
     }
 
     [HttpPut]
@@ -159,32 +152,25 @@ public class UsersController : ControllerBase
             {
                 return BadRequest(new ErrorResponseDTO { Status = 400, Error = "Invalid data" });
             }
-            if (HttpContext.User.Identity.IsAuthenticated)
+            var username = HttpContext.User.Identity.Name;
+            var user = context.MyUser.FirstOrDefault(u => u.Email == username);
+            if (user == null)
             {
-                var username = HttpContext.User.Identity.Name;
-                var user = context.MyUser.FirstOrDefault(u => u.Email == username);
-                if (user == null)
-                {
-                    return NotFound(new ErrorResponseDTO { Status = 404, Error = "User do not exist" });
-                }
-                bool psw = BCrypt.Net.BCrypt.Verify(passwordChange.CurrentPassword, user.Password);
-                if (psw)
-                {
-                    string hashedPassword = BCrypt.Net.BCrypt.HashPassword(passwordChange.NewPassword);
-                    user.Password = hashedPassword;
-                    context.SaveChanges();
-                }
-                else
-                {
-                    return BadRequest(new ErrorResponseDTO { Status = 400, Error = "Invalid data" });
-                }
-
-                return Ok(new { message = "Updated password" });
+                return NotFound(new ErrorResponseDTO { Status = 404, Error = "User do not exist" });
+            }
+            bool psw = BCrypt.Net.BCrypt.Verify(passwordChange.CurrentPassword, user.Password);
+            if (psw)
+            {
+                string hashedPassword = BCrypt.Net.BCrypt.HashPassword(passwordChange.NewPassword);
+                user.Password = hashedPassword;
+                context.SaveChanges();
             }
             else
             {
-                return Unauthorized(new ErrorResponseDTO { Status = 401, Error = "Unauthorized access." });
+                return BadRequest(new ErrorResponseDTO { Status = 400, Error = "Invalid data" });
             }
+
+            return Ok(new { message = "Updated password" });
         }
         catch (Exception ex)
         {
@@ -247,34 +233,27 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult DeleteUser()
     {
-        if (HttpContext.User.Identity.IsAuthenticated)
+        var username = HttpContext.User.Identity.Name;
+        var user = context.MyUser.FirstOrDefault(u => u.Email == username);
+
+        if (user == null)
         {
-            var username = HttpContext.User.Identity.Name;
-            var user = context.MyUser.FirstOrDefault(u => u.Email == username);
-
-            if (user == null)
-            {
-                return NotFound(new ErrorResponseDTO { Status = 404, Error = "User do not exist" });
-            }
-            int id_user = user.Id;
-            var userActivities = context.MyUser_Activities.Where(ua => ua.UserId == id_user).ToList();
-            if (userActivities.Any())
-            {
-                context.MyUser_Activities.RemoveRange(userActivities);
-            }
-            var userToRemove = context.MyUser.FirstOrDefault(u => u.Id == id_user);
-            if (userToRemove != null)
-            {
-                context.MyUser.Remove(userToRemove);
-            }
-
-            context.SaveChanges();
-
-            return Ok(new { message = "The user was deleted." });
+            return NotFound(new ErrorResponseDTO { Status = 404, Error = "User do not exist" });
         }
-        else
+        int id_user = user.Id;
+        var userActivities = context.MyUser_Activities.Where(ua => ua.UserId == id_user).ToList();
+        if (userActivities.Any())
         {
-            return Unauthorized(new ErrorResponseDTO { Status = 401, Error = "Unauthorized access." });
+            context.MyUser_Activities.RemoveRange(userActivities);
         }
+        var userToRemove = context.MyUser.FirstOrDefault(u => u.Id == id_user);
+        if (userToRemove != null)
+        {
+            context.MyUser.Remove(userToRemove);
+        }
+
+        context.SaveChanges();
+
+        return Ok(new { message = "The user was deleted." });
     }
 }
