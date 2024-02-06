@@ -13,10 +13,12 @@ public class UsersController : ControllerBase
 {
     private readonly ApplicationDbContext context;
     private readonly AuthService authService;
+    private readonly UserService userService;
     public UsersController(ApplicationDbContext context)
     {
         this.context = context;
         this.authService = new AuthService(context);
+        this.userService = new UserService(context);
     }
     [HttpPost]
     [Route("login")]
@@ -51,7 +53,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(typeof(List<AboutUserDTO>), StatusCodes.Status200OK)]
     public IEnumerable<AboutUserDTO> GetUsers()
     {
-        var users = context.MyUser.ToList();
+        var users = userService.FindAllUsers();
         var userDTOs = new List<AboutUserDTO>();
 
         foreach (var user in users)
@@ -119,8 +121,11 @@ public class UsersController : ControllerBase
     public IActionResult GetUserInfo()
     {
         var username = HttpContext.User.Identity.Name;
-        var user = context.MyUser.FirstOrDefault(u => u.Email == username);
-
+        if (username == null)
+        {
+            return NotFound(new ErrorResponseDTO { Status = 404, Error = "User do not exist" });
+        }
+        var user = userService.FindUserByUsername(username);
         if (user == null)
         {
             return NotFound(new ErrorResponseDTO { Status = 404, Error = "User do not exist" });
@@ -148,28 +153,20 @@ public class UsersController : ControllerBase
     {
         try
         {
-            if (passwordChange == null)
+            if (passwordChange == null || passwordChange.CurrentPassword == null || passwordChange.NewPassword == null)
             {
                 return BadRequest(new ErrorResponseDTO { Status = 400, Error = "Invalid data" });
             }
             var username = HttpContext.User.Identity.Name;
-            var user = context.MyUser.FirstOrDefault(u => u.Email == username);
-            if (user == null)
+            if (username == null)
             {
                 return NotFound(new ErrorResponseDTO { Status = 404, Error = "User do not exist" });
             }
-            bool psw = BCrypt.Net.BCrypt.Verify(passwordChange.CurrentPassword, user.Password);
-            if (psw)
-            {
-                string hashedPassword = BCrypt.Net.BCrypt.HashPassword(passwordChange.NewPassword);
-                user.Password = hashedPassword;
-                context.SaveChanges();
-            }
-            else
+            bool isUpdated = userService.ChangePwd(username, passwordChange.CurrentPassword, passwordChange.NewPassword);
+            if (!isUpdated)
             {
                 return BadRequest(new ErrorResponseDTO { Status = 400, Error = "Invalid data" });
             }
-
             return Ok(new { message = "Updated password" });
         }
         catch (Exception ex)
@@ -185,8 +182,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(typeof(AboutUserDTO), StatusCodes.Status200OK)]
     public IActionResult GetUsersById(int id)
     {
-        var user = context.MyUser.FirstOrDefault(u => u.Id == id);
-
+        var user = userService.FindUserById(id);
         if (user == null)
         {
             return NotFound(new ErrorResponseDTO { Status = 404, Error = "User do not exist" });
@@ -208,7 +204,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(typeof(AboutUserDTO), StatusCodes.Status200OK)]
     public IActionResult GetUsersByEmail(string email)
     {
-        var user = context.MyUser.FirstOrDefault(u => u.Email == email);
+        var user = userService.FindUserByUsername(email);
 
         if (user == null)
         {
@@ -230,30 +226,30 @@ public class UsersController : ControllerBase
     [Authorize(AuthenticationSchemes = "BasicAuthentication")]
     [ProducesResponseType(typeof(ErrorResponseDTO), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponseDTO), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult DeleteUser()
     {
-        var username = HttpContext.User.Identity.Name;
-        var user = context.MyUser.FirstOrDefault(u => u.Email == username);
-
-        if (user == null)
+        try
         {
-            return NotFound(new ErrorResponseDTO { Status = 404, Error = "User do not exist" });
+            var username = HttpContext.User.Identity.Name;
+            if (username == null)
+            {
+                return NotFound(new ErrorResponseDTO { Status = 404, Error = "User do not exist" });
+            }
+            bool isDeleted = userService.UserDelete(username);
+            if (!isDeleted)
+            {
+                return NotFound(new ErrorResponseDTO { Status = 404, Error = "User do not exist" });
+            }
+
+            return Ok(new { message = "The user was deleted." });
         }
-        int id_user = user.Id;
-        var userActivities = context.MyUser_Activities.Where(ua => ua.UserId == id_user).ToList();
-        if (userActivities.Any())
+        catch (Exception ex)
         {
-            context.MyUser_Activities.RemoveRange(userActivities);
-        }
-        var userToRemove = context.MyUser.FirstOrDefault(u => u.Id == id_user);
-        if (userToRemove != null)
-        {
-            context.MyUser.Remove(userToRemove);
+            Console.WriteLine(ex.Message);
+            return StatusCode(500, new { error = "Internal Server Error" });
         }
 
-        context.SaveChanges();
-
-        return Ok(new { message = "The user was deleted." });
     }
 }
