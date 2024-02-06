@@ -13,10 +13,13 @@ public class UserAndActivitiesController : ControllerBase
 {
     private readonly ApplicationDbContext context;
     private readonly AuthService authService;
+    private readonly UserAndActivitiesService userAndActivitiesService;
+
     public UserAndActivitiesController(ApplicationDbContext context)
     {
         this.context = context;
         this.authService = new AuthService(context);
+        this.userAndActivitiesService = new UserAndActivitiesService(context);
     }
 
     [HttpPost]
@@ -36,18 +39,16 @@ public class UserAndActivitiesController : ControllerBase
                 return BadRequest(new ErrorResponseDTO { Status = 400, Error = "Invalid data." });
             }
             var username = HttpContext.User.Identity.Name;
-            var user = context.MyUser.FirstOrDefault(u => u.Email == username);
-            var activity = context.Activities.FirstOrDefault(ac => ac.Name == activityNameDTO.Name);
-            if (activity == null || user == null)
+
+            if (username == null)
+            {
+                return NotFound(new ErrorResponseDTO { Status = 404, Error = "User do not exist." });
+            }
+            bool is_activity_added = userAndActivitiesService.SaveUserActivity(username, activityNameDTO.Name);
+            if (!is_activity_added)
             {
                 return NotFound(new ErrorResponseDTO { Status = 404, Error = "Activity do not exist." });
             }
-
-            var actforuser = new MyUser_Activities();
-            actforuser.ActivityId = activity.Id;
-            actforuser.UserId = user.Id;
-            context.MyUser_Activities.Add(actforuser);
-            context.SaveChanges();
             return Ok(new { message = "Activity added for user." });
         }
         catch (Exception ex)
@@ -69,45 +70,41 @@ public class UserAndActivitiesController : ControllerBase
         try
         {
             var username = HttpContext.User.Identity.Name;
-            var user = context.MyUser.FirstOrDefault(u => u.Email == username);
-            if (user == null)
+            if (username == null)
             {
                 return NotFound(new ErrorResponseDTO { Status = 404, Error = "User do not exist" });
             }
-            var act = context.MyUser_Activities.Where(ac => ac.UserId == user.Id).ToList();
-            var activityDTOs = new List<ActivitiesForUserDTO>();
-            foreach (var action in act)
+            var my_activities = userAndActivitiesService.AboutActivitiesUser(username);
+            if (my_activities == null)
             {
-                var activities = context.Activities.FirstOrDefault(a => a.Id == action.ActivityId);
-                if (activities != null)
-                {
-                    var location = context.Location.FirstOrDefault(l => l.Id == activities.LocationId);
-                    if (location != null)
-                    {
-                        var locationDTO = new AboutLocationDTO
-                        {
-                            NameCity = location.NameCity,
-                            ExactLocation = location.ExactLocation
-                        };
-
-                        var activityDTO = new AboutActivityDTO
-                        {
-                            Name = activities.Name,
-                            Price = activities.Price,
-                            Time = activities.Time,
-                            Location = locationDTO
-                        };
-                        var activitiesDTO = new ActivitiesForUserDTO
-                        {
-                            CreatedAt = action.CreatedAt,
-                            Activity = activityDTO
-                        };
-                        activityDTOs.Add(activitiesDTO);
-                    }
-
-                }
-
+                return NotFound(new ErrorResponseDTO { Status = 404, Error = "User or Location or Activity do not exist" });
             }
+            var activityDTOs = new LinkedList<ActivitiesForUserDTO>();
+            foreach (var action in my_activities)
+            {
+                var activities = action.Activity;
+                var location = activities.Location;
+                var locationDTO = new AboutLocationDTO
+                {
+                    NameCity = location.NameCity,
+                    ExactLocation = location.ExactLocation
+                };
+                var activityDTO = new AboutActivityDTO
+                {
+                    Name = activities.Name,
+                    Price = activities.Price,
+                    Time = activities.Time,
+                    Location = locationDTO
+                };
+                var activitiesDTO = new ActivitiesForUserDTO
+                {
+                    CreatedAt = action.CreatedAt,
+                    Activity = activityDTO
+                };
+                
+                activityDTOs.AddLast(activitiesDTO);
+            }
+
             return Ok(activityDTOs);
         }
         catch (Exception ex)
