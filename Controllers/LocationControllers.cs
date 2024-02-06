@@ -13,10 +13,12 @@ public class LocationsController : ControllerBase
 {
     private readonly ApplicationDbContext context;
     private readonly AuthService authService;
+    private readonly LocationService locationService;
     public LocationsController(ApplicationDbContext context)
     {
         this.context = context;
         this.authService = new AuthService(context);
+        this.locationService = new LocationService(context);
     }
     [HttpGet]
     [Route("all-location")]
@@ -29,14 +31,20 @@ public class LocationsController : ControllerBase
 
         try
         {
-            var locations = context.Location.ToList();
-            var locationDTOs = locations.Select(location => new AboutLocationDTO
+            var loc = locationService.AllLocations();
+            var locationDTOs = new List<AboutLocationDTO>();
+            foreach (var l in loc)
             {
-                NameCity = location.NameCity,
-                ExactLocation = location.ExactLocation
-            }).ToList();
+                var locationDTO = new AboutLocationDTO()
+                {
+                    NameCity = l.NameCity,
+                    ExactLocation = l.ExactLocation
+                };
+                locationDTOs.Add(locationDTO);
+            }
 
             return Ok(locationDTOs);
+
         }
         catch (Exception ex)
         {
@@ -56,11 +64,17 @@ public class LocationsController : ControllerBase
     {
         try
         {
-            var locations = context.Location.Select(loc => loc.NameCity).Distinct().ToList();
-            var locationDTOs = locations.Select(nameCity => new LocationCityDTO
+            var loc = locationService.AllCityNames();
+            var locationDTOs = new List<LocationCityDTO>();
+            foreach (var l in loc)
             {
-                NameCity = nameCity
-            }).ToList();
+                var locationDTO = new LocationCityDTO()
+                {
+                    NameCity = l
+                };
+                locationDTOs.Add(locationDTO);
+            }
+
 
             return Ok(locationDTOs);
         }
@@ -82,7 +96,7 @@ public class LocationsController : ControllerBase
     {
         try
         {
-            var location = context.Location.FirstOrDefault(loc => loc.Id == id);
+            var location = locationService.FindLocationById(id);
             if (location == null)
             {
                 return NotFound(new ErrorResponseDTO { Status = 404, Error = "Location do not exist" });
@@ -116,8 +130,8 @@ public class LocationsController : ControllerBase
 
         try
         {
-            var locations = context.Location.Where(u => u.NameCity == name).ToList();
-            if (locations.Count == 0)
+            var locations = locationService.FindLocationByCityName(name);
+            if (locations == null)
             {
                 return NotFound(new ErrorResponseDTO { Status = 404, Error = "Location do not exist" });
             }
@@ -149,25 +163,24 @@ public class LocationsController : ControllerBase
 
         try
         {
-            var locations = context.Location.ToList();
+            var locations = locationService.AllLocationWithActivities();
             var locationDTOs = locations.Select(location =>
-            {
-                var activities = context.Activities
-                    .Where(activity => activity.LocationId == location.Id)
-                    .Select(activity => new ActivityDTO
-                    {
-                        Name = activity.Name,
-                        Price = activity.Price,
-                        Time = activity.Time
-                    }).ToList();
-
-                return new LocationWithActivitiesDTO
+        {
+            var activityDTOs = location.Activities.Select(activity =>
+                new ActivityDTO
                 {
-                    NameCity = location.NameCity,
-                    ExactLocation = location.ExactLocation,
-                    Activities = activities
-                };
-            }).ToList();
+                    Name = activity.Name,
+                    Price = activity.Price,
+                    Time = activity.Time
+                }).ToList();
+
+            return new LocationWithActivitiesDTO
+            {
+                NameCity = location.NameCity,
+                ExactLocation = location.ExactLocation,
+                Activities = activityDTOs
+            };
+        }).ToList();
 
             return Ok(locationDTOs);
         }
