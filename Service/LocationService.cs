@@ -14,11 +14,6 @@ public class LocationService
     public List<Location> AllLocations()
     {
         var locations = context.Location.ToList();
-        /*var loc = locations.Select(location => new Location
-        {
-            NameCity = location.NameCity,
-            ExactLocation = location.ExactLocation
-        }).ToList();*/
         return locations;
     }
 
