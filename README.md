@@ -11,7 +11,7 @@ In the database, we have four different tables, which are as follows:
 
 Grafically it looks as follows (using a Class diagram):
 ![Class diagram](image/DotNetActivityApp2.drawio.png)
-##Trying out the app
+## Trying out the app
 If you want to try out how the application works, you need to take the following steps:
 1. Open Docker Desktop.
 2. Open the command prompt and navigate to the root directory where the Program.cs file is located. (Alternatively, open the project in VS Code and click on the Terminal tab.)
