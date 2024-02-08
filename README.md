@@ -8,4 +8,5 @@ In the database, we have four different tables, which are as follows:
 - Activities
 - MyUser
 - MyUser_Activities
+
 ![Class diagram](image/DotNetActivityApp2.drawio.png)
